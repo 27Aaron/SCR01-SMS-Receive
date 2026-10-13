@@ -1,6 +1,5 @@
 #!/system/bin/sh
-# SCR01 SMS Receive 0.1.1 shared helpers. State is data, never shell code.
-# Minimal edition: no firewall/proxy integration, no SIM numeric restrictions.
+# SCR01 SMS Receive shared helpers. State is data, never shell code.
 MODDIR=${MODDIR:-${0%/*}}
 STATE=/data/adb/scr01_sms_receive_state
 TARGET=/product/overlay/AccentColorCinnamon/AccentColorCinnamonOverlay.apk
@@ -9,11 +8,10 @@ APP=org.fossify.messages
 ORIGINAL=7a206d842ad6baa60a22e10df8b154dc92b76e4ee3f5006adfbca9c89e2d8f19
 CANDIDATE=be3101f4bbae894aa86cbe9493e7c110f9d669967a1622e3f5bfc95dd36591cf
 FIRMWARE=KDDI/SCR01_jp_kdi/SCR01:11/RP1A.200720.012/SCR01KDU1AVK2:user/release-keys
-TAG=scr01-sms-module-v1
 APN_NAME='SCR01 SMS module v1 IMS'
 IMS=content://com.sec.ims.settings/imsswitch
 CARRIERS=content://telephony/carriers
-# Official Fossify Messages 1.10.1 release asset published by FossifyOrg/Messages.
+# Official Fossify Messages release asset from FossifyOrg/Messages.
 FOSSIFY_URL=https://github.com/FossifyOrg/Messages/releases/download/1.10.1/messages-25-foss-release.apk
 FOSSIFY_SHA=af81e85e0e5442cf22d9669f43ecc42e39737389cff8fe91fd0ef58dab59703d
 umask 077
@@ -43,8 +41,8 @@ lock() {
     flock -n 9 || { fail 'Another module transaction is running'; return 1; }
 }
 # Samsung Android 11 dumpsys role parsing. Absent role or empty holders both
-# count as null (a fresh registry has no SMS role name at all); any holder
-# other than Fossify is a refusal, never stolen.
+# count as null (a fresh registry has no SMS role name at all); any other
+# holder is refused rather than replaced.
 role() {
     run dumpsys role | awk '
     /user_id=|userId=/ { user=($0 ~ /(user_id|userId)=0([^0-9]|$)/); active=0 }
@@ -100,7 +98,7 @@ ensure_fossify() {
     status=$?
     rm -f "$staged"
     if [ "$status" = 0 ] && printf '%s\n' "$output" | grep -q 'Success' && run pm path "$APP" 2>/dev/null | grep -q '^package:'; then
-        say 'Fossify Messages 1.10.1 installed from the official release'
+        say 'Fossify Messages installed from the official release'
         return 0
     fi
     say "Fossify install failed: $output"

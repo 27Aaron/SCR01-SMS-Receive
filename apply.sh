@@ -8,7 +8,8 @@ firmware_guard && need_tools && lock || exit 1
 mkdir -m 0700 "$STATE" 2>/dev/null; chmod 0700 "$STATE" 2>/dev/null
 [ "$(hash "$MODDIR/payload/AccentColorCinnamonOverlay.apk")" = "$CANDIDATE" ] || { log 'Payload hash mismatch'; exit 1; }
 
-# Readiness: boot complete, SIM loaded, no active SCRoot rooting flow.
+# Readiness: wait out SCRoot's boot-time rooting flow (it can restart system
+# services mid-run), then require boot complete and a loaded SIM.
 count=0
 while [ "$count" -lt 180 ]; do
     [ ! -e "$MODDIR/disable" ] && [ ! -e "$MODDIR/remove" ] || exit 0
@@ -50,11 +51,13 @@ if [ -n "$sim_numeric" ]; then
     [ -n "$owned" ] || put apn_numeric "$sim_numeric" || exit 1
 fi
 
-# Mounts: init is bound first so idmap2d — respawned by the framework and
-# inheriting the init view — regenerates the idmap from the candidate file;
-# then the running watched processes. Idempotent within and across runs.
+# Mounts: init is bound first so that idmap2d, which the framework respawns
+# into the inherited init view, regenerates the idmap from the candidate file
+# instead of the on-disk original; then the running watched processes.
 chmod 0644 "$MODDIR/payload/AccentColorCinnamonOverlay.apk" &&
 chcon u:object_r:vendor_overlay_file:s0 "$MODDIR/payload/AccentColorCinnamonOverlay.apk" || exit 1
+# Bind only namespaces still showing the original; candidate means already
+# bound by an earlier run, anything else is a foreign mount.
 bind_pid() {
     case "$(view_hash "$1")" in
         "$CANDIDATE") return 0;;
@@ -64,6 +67,8 @@ bind_pid() {
 }
 pids=$(watched_pids) || { log 'Watched processes unavailable'; exit 1; }
 for pid in $pids; do bind_pid "$pid" || { log "Bind failed: pid=$pid"; exit 1; }; done
+# A live idmap2d would rebuild the idmap from the on-disk original file; it
+# must be gone so the next enable regenerates one from the candidate view.
 reset_idmap() {
     while [ -n "$(pidof idmap2d 2>/dev/null)" ]; do kill "$(pidof idmap2d)" 2>/dev/null; sleep 1; done
     rm -f /data/resource-cache/product@overlay@AccentColorCinnamon@AccentColorCinnamonOverlay.apk@idmap
@@ -100,9 +105,9 @@ if [ "$current_role" != "$APP" ]; then
     log "SMS role bootstrapped to $APP"
 fi
 
-# IMS link, best effort: one owned APN row plus volte/smsip switches. The
-# reference device received SMS before either existed, so failures are logged
-# and never abort the run.
+# IMS link, best effort: one owned APN row plus volte/smsip switches.
+# Receiving worked on the test device before either existed, so failures
+# are logged and never abort the run.
 if [ -n "$(get apn_numeric)" ]; then
     rows=$(apn_rows 2>/dev/null) || rows=
     if ! printf '%s\n' "$rows" | grep -q '^Row:'; then
