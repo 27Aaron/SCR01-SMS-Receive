@@ -112,7 +112,7 @@ adb shell "su -c '/data/adb/ksu/bin/busybox sh /data/adb/modules/scr01_sms_recei
 
 ## Credits
 
-- Based on the SCR01 SMS module shared by earrmouth (https://github.com/earrmouth)
+- Based on the SCR01 SMS module shared by Earrmouth (https://github.com/earrmouth)
 - Fossify Messages: <https://github.com/FossifyOrg/Messages> (GPL-3.0,
   distributed from the official releases)
 - Root environment: [SCRoot](https://github.com/hackintoanetwork/SCRoot) /

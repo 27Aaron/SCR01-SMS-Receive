@@ -94,7 +94,7 @@ adb shell "su -c '/data/adb/ksu/bin/busybox sh /data/adb/modules/scr01_sms_recei
 
 ## 来源与致谢
 
-- 本模块基于 earrmouth（https://github.com/earrmouth ）分享的 SCR01 短信模块精简而来
+- 本模块基于 Earrmouth（https://github.com/earrmouth ）分享的 SCR01 短信模块精简而来
 - Fossify Messages：<https://github.com/FossifyOrg/Messages>（GPL-3.0，
   由官方 Release 分发）
 - Root 环境：[SCRoot](https://github.com/hackintoanetwork/SCRoot) /

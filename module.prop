@@ -2,5 +2,5 @@ id=scr01_sms_receive
 name=SCR01 SMS Receive
 version=0.1.2
 versionCode=3
-author=earrmouth / Aaron
+author=Earrmouth / Aaron
 description=Minimal SMS enablement for SCR01KDU1AVK2: flips config_sms_capable through the mutable Cinnamon overlay, bootstraps the Fossify SMS role, and lets the IMS APN follow the inserted SIM. No firewall or proxy integration. Fossify Messages is fetched from its official GitHub release when absent.
