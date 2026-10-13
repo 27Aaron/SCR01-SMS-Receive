@@ -129,14 +129,17 @@ for service in volte smsip; do
 done
 
 # One phone restart per boot refreshes the inbound-SMS capability cache. The
-# restart waits for the launcher first: killing com.android.phone while the
-# home app is still initializing takes the home process down with it, and the
-# system does not retry the home start.
+# restart waits until the home activity has actually resumed: killing
+# com.android.phone while the home app is still initializing takes the home
+# process down with it, and the system does not retry the home start. A home
+# broadcast receiver process is not enough — wait for the real activity.
+home_resumed() { dumpsys activity activities 2>/dev/null | grep -q 'Resumed.*com.samsung.android.mhshome/.MainActivity'; }
 count=0
-while [ "$count" -lt 60 ] && [ -z "$(pidof com.samsung.android.mhshome 2>/dev/null)" ]; do
+while [ "$count" -lt 90 ]; do
+    home_resumed && break
     sleep 2; count=$((count + 2))
 done
-[ -n "$(pidof com.samsung.android.mhshome 2>/dev/null)" ] || log 'Launcher not up before phone restart; continuing anyway'
+home_resumed || log 'Launcher activity not resumed before phone restart; continuing anyway'
 boot=$(tr -d '\n' < /proc/sys/kernel/random/boot_id)
 if ! phone_capable || [ "$(get phone_restart_boot)" != "$boot" ]; then
     [ "$(get phone_restart_boot)" != "$boot" ] || { log 'Phone capability false after an earlier restart'; exit 1; }
