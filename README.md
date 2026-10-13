@@ -24,7 +24,7 @@ The stock firmware ships `config_sms_capable=false`, so the SMS role does not ex
 2. Turns the SMS capability back on through Samsung's own theme-overlay channel;
 3. Bootstraps the SMS role and grants it to Fossify;
 4. Restarts the phone process once to refresh the receive cache, then configures the IMS APN and the volte/smsip switches (best effort, never fatal);
-5. If Surfing's four local proxy/DNS chains exist, inserts a RETURN for system UID 1000 at the head of each so IMS registration is not caught by TPROXY. Surfing drops the rule when it rebuilds a chain; the next boot puts it back, and rollback removes it by its comment. The bypass covers every flow owned by UID 1000, not only IMS.
+5. If Surfing is installed and enabled, inserts a RETURN for system UID 1000 at the head of its four local proxy/DNS chains so IMS registration is not caught by TPROXY. Surfing rebuilds those chains on every service restart, so a boot-time watch puts the rule back within a few seconds and stops when Surfing is disabled or removed; rollback deletes it by its comment. The bypass covers every flow owned by UID 1000, not only IMS.
 
 Failures only log; the next boot retries. Every change is runtime state with per-item journaling, no partition is modified, and `rollback.sh` restores everything. The only visible side effect is the system accent color switching to Cinnamon.
 

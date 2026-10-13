@@ -87,12 +87,26 @@ surfing_present() {
 ensure_surfing_bypass() {
     surfing_present || { log 'Surfing not installed or disabled; bypass not applied'; return 0; }
     surfing_chains | while read -r tool table chain; do
-        "$tool" -w 5 -t "$table" -S "$chain" >/dev/null 2>&1 || { log "Surfing chain absent, bypass skipped: $tool $table $chain"; continue; }
+        "$tool" -w 5 -t "$table" -S "$chain" >/dev/null 2>&1 || continue
         "$tool" -w 5 -t "$table" -C "$chain" -m owner --uid-owner 1000 -m comment --comment "$RULE_TAG" -j RETURN >/dev/null 2>&1 && continue
         "$tool" -w 5 -t "$table" -I "$chain" 1 -m owner --uid-owner 1000 -m comment --comment "$RULE_TAG" -j RETURN >/dev/null 2>&1 ||
             { log "Surfing bypass insert failed: $tool $table $chain"; continue; }
         log "Surfing bypass inserted: $tool $table $chain"
     done
+}
+# Surfing tears its chains down and rebuilds them on every service restart, so
+# a rule inserted once at boot is gone the next time the user toggles it.
+# Watch the chains and put the rule back; stop when Surfing is gone or off.
+# Started from boot, not from apply, so it keeps running on boots where apply
+# exits early.
+watch_surfing_bypass() {
+    surfing_present || return 0
+    trap 'exit 0' TERM INT
+    while surfing_present; do
+        ensure_surfing_bypass
+        sleep 5
+    done
+    log 'Surfing bypass watch stopped'
 }
 drop_surfing_bypass() {
     surfing_chains | while read -r tool table chain; do
