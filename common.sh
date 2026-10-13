@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# SCR01 SMS Receive 0.1.0 shared helpers. State is data, never shell code.
+# SCR01 SMS Receive 0.1.1 shared helpers. State is data, never shell code.
 # Minimal edition: no firewall/proxy integration, no SIM numeric restrictions.
 MODDIR=${MODDIR:-${0%/*}}
 STATE=/data/adb/scr01_sms_receive_state

@@ -53,8 +53,8 @@
 ## 安装
 
 ```sh
-adb push SCR01-SMS-Receive-v0.1.2.zip /data/local/tmp/
-adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.2.zip'"
+adb push SCR01-SMS-Receive-v0.1.1.zip /data/local/tmp/
+adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.1.zip'"
 adb reboot
 ```
 
