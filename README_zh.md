@@ -23,15 +23,16 @@
 1. 确保 Fossify Messages 已安装——缺失时从官方 Release 下载（固定 URL + SHA256 校验），已装的副本永不替换；
 2. 借三星自有的主题覆盖通道把短信能力重新打开；
 3. 引导 SMS 角色并授予 Fossify；
-4. 重启一次电话进程刷新收信缓存，并配置 IMS APN 与 volte/smsip 开关（尽力而为，失败不阻断）。
+4. 重启一次电话进程刷新收信缓存，并配置 IMS APN 与 volte/smsip 开关（尽力而为，失败不阻断）；
+5. 若 Surfing 的四条本机代理/DNS 链存在，在每条链首插入 system UID 1000 的 RETURN，避免 IMS 注册被 TPROXY 接管。Surfing 重建链会丢掉这条规则，下次开机自动补回；回退时按注释删除。该例外覆盖 UID 1000 的全部流量，不只 IMS。
 
 失败只记日志，下次开机自动重试。所有改动均为运行时状态并逐项记录，不修改任何分区，`rollback.sh` 可完整还原。唯一可见副作用是系统强调色变为 Cinnamon。
 
 ## 安装
 
 ```sh
-adb push SCR01-SMS-Receive-v0.1.1.zip /data/local/tmp/
-adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.1.zip'"
+adb push SCR01-SMS-Receive-v0.1.2.zip /data/local/tmp/
+adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.2.zip'"
 adb reboot
 ```
 

@@ -23,15 +23,16 @@ SCR01 に SMS の送受信を取り戻す、最小構成の KernelSU モジュ�
 1. Fossify Messages がインストールされていることを確認 — 未インストールの場合は公式リリースから取得（URL と SHA256 を固定）。インストール済みのコピーは一切置き換えません；
 2. Samsung 純正のテーマオーバーレイ経路で SMS 機能をオンに戻します；
 3. SMS ロールをブートストラップし、Fossify に付与します；
-4. 受信キャッシュを更新するため電話プロセスを一度再起動し、IMS APN と volte/smsip スイッチを設定します（ベストエフォート、失敗しても中断しません）。
+4. 受信キャッシュを更新するため電話プロセスを一度再起動し、IMS APN と volte/smsip スイッチを設定します（ベストエフォート、失敗しても中断しません）；
+5. Surfing の 4 本のローカルプロキシ/DNS チェーンがあれば、各先頭に system UID 1000 の RETURN を挿入し、IMS 登録が TPROXY に取り込まれないようにします。Surfing がチェーンを再構築するとルールは消えますが、次回起動時に戻し、ロールバック時はコメントで削除します。この例外は UID 1000 の全通信に適用され、IMS だけではありません。
 
 失敗はログのみで、次回起動時に再試行します。すべての変更はランタイム状態として項目ごとに記録され、パーティションは一切変更せず、`rollback.sh` で完全に復元できます。唯一の目に見える副作用は、システムのアクセントカラーが Cinnamon に変わることです。
 
 ## インストール
 
 ```sh
-adb push SCR01-SMS-Receive-v0.1.1.zip /data/local/tmp/
-adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.1.zip'"
+adb push SCR01-SMS-Receive-v0.1.2.zip /data/local/tmp/
+adb shell "su -c 'ksud module install /data/local/tmp/SCR01-SMS-Receive-v0.1.2.zip'"
 adb reboot
 ```
 

@@ -1,6 +1,6 @@
 id=scr01_sms_receive
 name=SCR01 SMS Receive
-version=0.1.1
-versionCode=2
+version=0.1.2
+versionCode=3
 author=Earrmouth / Aaron
 description=Adds SMS send and receive to the SCR01 (SCR01KDU1AVK2).

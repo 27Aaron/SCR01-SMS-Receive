@@ -81,6 +81,7 @@ for pid in $(watched_pids 2>/dev/null); do
     [ "$(view_hash "$pid" 2>/dev/null)" = "$ORIGINAL" ] || errors=1
 done
 
+drop_surfing_bypass
 if [ "$errors" = 0 ]; then
     put transaction rolled_back || errors=1
     log 'Rollback complete. Reboot once to clear the phone capability cache.'

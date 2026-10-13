@@ -165,6 +165,9 @@ fi
 resource_true || { log 'Final resource lookup failed'; exit 1; }
 phone_capable || { log 'Final phone capability failed'; exit 1; }
 [ "$(role)" = "$APP" ] || { log 'Final SMS role failed'; exit 1; }
+# After the phone restart: Surfing may have rebuilt its chains during boot,
+# and a chain it rebuilds later is simply re-asserted on the next boot.
+ensure_surfing_bypass
 count=0
 while [ "$count" -lt 15 ] && [ -z "$(preferred 2>/dev/null)" ]; do sleep 1; count=$((count + 1)); done
 [ -n "$(preferred 2>/dev/null)" ] || log 'Preferred data APN not visible yet (non-fatal)'

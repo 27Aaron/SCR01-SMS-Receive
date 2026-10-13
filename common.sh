@@ -71,6 +71,34 @@ resource_true() {
     [ "$(run cmd overlay lookup com.android.phone android:bool/config_sms_capable | tr -d '\r')" = true ]
 }
 phone_capable() { run dumpsys phone | grep -Eq 'isSmsCapable[=:][[:space:]]*true'; }
+# Surfing's TPROXY path does not honor tun.exclude-package. IMS registration
+# runs as system UID 1000, so it is caught by the four local proxy/DNS chains.
+# Surfing rebuilds those chains whenever it restarts, which drops a one-shot
+# insert; re-assert them whenever the chains exist. The comment is the
+# ownership tag rollback matches. Bypasses every flow owned by UID 1000, not
+# only IMS, and only while Surfing's chains are present.
+RULE_TAG=scr01-sms-module-v1
+surfing_chains() { printf '%s\n' 'iptables mangle BOX_LOCAL' 'iptables nat CLASH_DNS_LOCAL' 'ip6tables mangle BOX_LOCAL' 'ip6tables mangle CLASH_DNS_LOCAL'; }
+# Present only when the module is installed and not switched off. A disable
+# file means the user turned it off, so its chains are not ours to touch.
+surfing_present() {
+    [ -f /data/adb/modules/Surfing/module.prop ] && [ ! -f /data/adb/modules/Surfing/disable ] && [ ! -f /data/adb/modules/Surfing/remove ]
+}
+ensure_surfing_bypass() {
+    surfing_present || { log 'Surfing not installed or disabled; bypass not applied'; return 0; }
+    surfing_chains | while read -r tool table chain; do
+        "$tool" -w 5 -t "$table" -S "$chain" >/dev/null 2>&1 || { log "Surfing chain absent, bypass skipped: $tool $table $chain"; continue; }
+        "$tool" -w 5 -t "$table" -C "$chain" -m owner --uid-owner 1000 -m comment --comment "$RULE_TAG" -j RETURN >/dev/null 2>&1 && continue
+        "$tool" -w 5 -t "$table" -I "$chain" 1 -m owner --uid-owner 1000 -m comment --comment "$RULE_TAG" -j RETURN >/dev/null 2>&1 ||
+            { log "Surfing bypass insert failed: $tool $table $chain"; continue; }
+        log "Surfing bypass inserted: $tool $table $chain"
+    done
+}
+drop_surfing_bypass() {
+    surfing_chains | while read -r tool table chain; do
+        while "$tool" -w 5 -t "$table" -D "$chain" -m owner --uid-owner 1000 -m comment --comment "$RULE_TAG" -j RETURN >/dev/null 2>&1; do :; done
+    done
+}
 # init plus the runtime processes that must see the candidate. The permission
 # controller entry is optional: when absent it is spawned later by the role
 # bootstrap and inherits the candidate view from zygote.
