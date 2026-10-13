@@ -1,6 +1,7 @@
 # SCR01 SMS Receive
 
 一个精简、自包含的模块：让 SCR01 恢复短信收发。
+
 [English](README.md) · 简体中文
 
 ## 兼容性
@@ -27,7 +28,7 @@
 ## 工作原理
 
 出厂固件的 `config_sms_capable=false`，导致短信角色在角色注册表里根本不存在，
-任何短信应用都无法启动。每次开机，在 root 武装、SIM 就绪之后，模块会：
+任何短信应用都无法启动。每次开机，在 root 生效、SIM 就绪之后，模块会：
 
 1. **确保 Fossify Messages 已安装**——缺失时从官方 GitHub Release 下载
    （固定 URL + SHA256 校验）；已安装的副本永远不会被替换或降级。
@@ -61,7 +62,7 @@ adb reboot
   `https://github.com/FossifyOrg/Messages/releases/download/1.10.1/messages-25-foss-release.apk`
   （SHA256 `af81e85e…dab59703d`）下载并以 root 安装；离线设备会提示
   手动安装后重启重试。
-- 激活发生在开机后（root 武装、SIM 就绪）。观察
+- 激活发生在开机后（root 生效、SIM 就绪）。观察
   `/data/adb/scr01_sms_receive_state/run.log`，出现
   `Active: capability true, role=org.fossify.messages` 即成功。
 
@@ -90,7 +91,27 @@ adb shell "su -c '/data/adb/ksu/bin/busybox sh /data/adb/modules/scr01_sms_recei
   模块会拒绝运行而不是抢夺角色。
 - 换卡前先回退——模块持有按旧 SIM 建立的 IMS APN 时，SIM numeric 变化会被
   拒绝并提示先回退。
-- 仅在一台设备上验证；核心机制在该设备上端到端实测通过，未做第二台设备测试。
+- **每次重启后约有 2-3 分钟的激活窗口**：root 生效 → 模块收敛（含每开机一次的电话
+  进程重启）→ IMS 重注册依次完成。窗口内发送可能报"无服务"，等待即可，无需任何操作。
+- **发送依赖 IMS 注册**（接收不受影响）。IMS 正常注册时 LTE 和 5G SA 下均可收发；
+  若调制解调器层的 5G 配置异常（SA 下 IMS 反复注册失败），发送会报"无服务"，
+  重跑附录的 5G 开启流程并重启即可恢复。
+
+## 附录：开启 5G（三星工程模式）
+
+设备默认只驻 4G；以下流程在调制解调器层开启 5G（含 SA），重启后生效：
+
+1. 设置 → 关于 → 状态 → 手机号码，**快速连续点击 10 次**，进入 DRParser Mode；
+2. 依次输入 `*#0011#`，进入 Service Mode；
+3. 点击右上角菜单 → 点击一次 Back → 再点击 Key input；
+4. 输入大写 `Q` 并确认，等待约一分钟进入主菜单；
+5. 依次进入 `[2] UE SETTING & INFO` → `[1] SETTING` → `[1] PROTOCOL` → `[9] NR`
+   → `[2] allow list control` → `[2] allow list off`（显示 APLY success）；
+   点击右上角菜单，点击两次 Back 回到上层目录；
+6. 进入 `[1] nr5g sa/nsa mode control` → `[1] sa/nsa enable`，按提示重启设备。
+
+默认九宫格输入大写 Q 的方法：点输入法左下角地球图标切到英文，点 `A/a` 切换大写，
+再点两次 `PQRS`。
 
 ## 来源与致谢
 

@@ -107,8 +107,35 @@ adb shell "su -c '/data/adb/ksu/bin/busybox sh /data/adb/modules/scr01_sms_recei
   instead of stealing it.
 - Swap SIM cards only after a rollback — while an owned IMS APN exists, a
   changed SIM numeric is refused with a rollback-first hint.
-- Validated on one device; the core mechanism was verified end to end on that
-  device, but no second-device testing has been done.
+- **Allow roughly 2-3 minutes after each reboot**: root arming, module
+  convergence (including the once-per-boot phone restart) and IMS
+  re-registration happen in sequence; sends may report "no service" inside
+  that window — just wait, no action is needed.
+- **Sending depends on IMS registration** (receiving is unaffected). With IMS
+  registered, both LTE and 5G SA send and receive fine; if the modem-level 5G
+  configuration is stale, IMS keeps failing to register on SA and sends report
+  "no service" — re-run the 5G enable procedure in the appendix and reboot.
+
+## Appendix: enabling 5G (Samsung service mode)
+
+The device camps on 4G by default; the procedure below enables 5G (including
+SA) at the modem level and takes effect after a reboot:
+
+1. Settings → About → Status → Phone number — **tap it quickly 10 times** to
+   enter DRParser Mode;
+2. Type `*#0011#` to enter Service Mode;
+3. Tap the top-right menu → tap Back once → tap Key input;
+4. Enter an uppercase `Q` and confirm, then wait about a minute for the main
+   menu;
+5. Navigate `[2] UE SETTING & INFO` → `[1] SETTING` → `[1] PROTOCOL` → `[9] NR`
+   → `[2] allow list control` → `[2] allow list off` (shows APLY success);
+   tap the top-right menu, tap Back twice to return to the parent list;
+6. Enter `[1] nr5g sa/nsa mode control` → `[1] sa/nsa enable` and reboot the
+   device when prompted.
+
+To type an uppercase Q on the default 9-key IME: tap the globe icon at the
+bottom-left to switch to English, tap `A/a` for uppercase, then tap `PQRS`
+twice.
 
 ## Credits
 
